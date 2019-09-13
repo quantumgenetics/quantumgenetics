@@ -35,6 +35,20 @@ class Gene():
 
         return measurement
 
+    def evolve(self, from_measurement, to_measurement):
+        next_circuit = self._circuit.copy()
+
+        for i in range(len(from_measurement)):
+            f = from_measurement[i]
+            t = to_measurement[i]
+            if f == t:
+                continue
+
+            sign = 1 if f == '0' and t == '1' else -1
+            next_circuit.ry(np.pi * 0.025 * sign, next_circuit.qregs[0][i])
+
+        return Gene(next_circuit)
+
     @classmethod
     def superposition_gene(cls, qubit_count):
         state_count = 2**qubit_count

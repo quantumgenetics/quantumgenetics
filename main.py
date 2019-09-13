@@ -17,7 +17,7 @@ from qiskit_helpers.local_simulator import noise_configuration
 CIRCUIT_QCOUNT = 2
 GATES_1Q = [apply_phase_flip]
 GATES_2Q = [apply_controlled_not]
-GENE_COUNT = 8
+GENE_COUNT = 4
 MAX_GENERATIONS = 30
 MEASUREMENT_QCOUNT = 3
 USE_CASE = [
@@ -40,6 +40,7 @@ def main():
 
     winner = map_circuit(CIRCUIT_QCOUNT, gate_map, measurements)
     winner_eval = evaluate(winner, use_case=USE_CASE)
+    winner_measurements = measurements
 
     gen_count = 0
     while gen_count < MAX_GENERATIONS and winner_eval[1] > 0:
@@ -47,8 +48,8 @@ def main():
 
         logger.warning('Producing candidate...')
         before = datetime.now()
-        measurements = chromosome.measure(configuration)
-        candidate = map_circuit(CIRCUIT_QCOUNT, gate_map, measurements)
+        candidate_measurements = chromosome.measure(configuration)
+        candidate = map_circuit(CIRCUIT_QCOUNT, gate_map, candidate_measurements)
         candidate_eval = evaluate(candidate, use_case=USE_CASE)
         delta = datetime.now() - before
         logger.warning('Candidate produced ({} s)'.format(delta.total_seconds()))
@@ -56,15 +57,18 @@ def main():
         if candidate_eval[1] < winner_eval[1]:
             logger.warning('Found new winner')
 
+            chromosome = chromosome.evolve(winner_measurements, candidate_measurements)
+
             winner = candidate
             winner_eval = candidate_eval
+            winner_measurements = candidate_measurements
 
         logger.warning('Generation {}'.format(gen_count))
         logger.warning('Current winner eval: {}'.format(winner_eval))
 
         gen_count += 1
 
-    logger.warning('Winner circuit:\n {}'.format(winner))
+    logger.warning('Winner circuit:\n{}'.format(winner))
     logger.warning('Winner eval: {}'.format(winner_eval))
 
 

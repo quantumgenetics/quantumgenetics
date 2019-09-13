@@ -65,7 +65,11 @@ def execute(circuit,
                                 noise_model=noise_model,
                                 coupling_map=coupling_map,
                                 basis_gates=noise_model.basis_gates,
-                                shots=shots).result()
+                                shots=shots,
+                                backend_options={
+                                    "max_parallel_threads":0,
+                                    'max_parallel_shots':0}
+                                ).result()
     else:
         result = qiskit_execute(circuit, simulator, shots=shots).result()
 

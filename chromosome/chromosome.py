@@ -26,7 +26,11 @@ class Chromosome():
         delta = datetime.now() - before
         self._logger.info('Chromosome measured ({} s)'.format(delta.total_seconds()))
 
-        return measurements
+        return list(measurements)
+
+    def evolve(self, from_measurements, to_measurements):
+        return Chromosome([g.evolve(from_measurements[i], to_measurements[i])
+                           for i,g in enumerate(self._genes)])
 
     @classmethod
     def superposition_chromosome(cls, gene_count, qubit_count_per_gene):
