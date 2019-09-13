@@ -22,3 +22,8 @@ def apply_phase_flip(index, circuit):
     qr = circuit.qregs[0]
 
     circuit.z(qr[index])
+
+def apply_y_rotation(index, theta, circuit):
+    qr = circuit.qregs[0]
+
+    circuit.ry(theta, qr[index])

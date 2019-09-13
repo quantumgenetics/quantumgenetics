@@ -7,9 +7,12 @@ from datetime import datetime
 
 import numpy as np
 
+from circuit_mapper.gate_1_qubit import apply_y_rotation
 from qiskit_helpers.initialized_circuit import initialized_empty_circuit
 from qiskit_helpers.local_simulator import execute
 
+
+ROTATION = 0.025
 
 class Gene():
 
@@ -45,7 +48,7 @@ class Gene():
                 continue
 
             sign = 1 if f == '0' and t == '1' else -1
-            next_circuit.ry(np.pi * 0.025 * sign, next_circuit.qregs[0][i])
+            apply_y_rotation(i, sign * ROTATION * np.pi, next_circuit)
 
         return Gene(next_circuit)
 
