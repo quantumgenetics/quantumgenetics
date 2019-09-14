@@ -12,7 +12,7 @@ from qiskit_helpers.initialized_circuit import initialized_empty_circuit
 from qiskit_helpers.local_simulator import execute
 
 
-ROTATION = 0.025
+ROTATION = 0.1
 
 class Gene():
 

@@ -50,7 +50,7 @@ def ibm_noise_configuration(remote_backend=_REMOTE_BACKEND_NAME, gate_times=_GAT
 
     return (noise_model, coupling_map)
 
-def customi_noise_configuration(remote_backend=_REMOTE_BACKEND_NAME):
+def custom_noise_configuration(remote_backend=_REMOTE_BACKEND_NAME):
     logger.info('Produce custom noise configuration')
 
     logger.info('Loading IBM account...')
