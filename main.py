@@ -25,8 +25,8 @@ GATES_1Q = [
 GATES_2Q = [
     g_2q.apply_controlled_not
 ]
-GENE_COUNT = 8
-MAX_GENERATIONS = 1000
+GENE_COUNT = 32
+MAX_GENERATIONS = 200
 MEASUREMENT_QCOUNT = 3
 USE_CASE = [
     ('00', {'01': 1024}),
