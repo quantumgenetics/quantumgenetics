@@ -6,6 +6,7 @@ from copy import deepcopy
 import math
 from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, execute
 import random
+from functools import reduce
 
 class Genetic_Executor:
 	'''
@@ -148,6 +149,14 @@ def get_pop_fitness(p_pool, population_iterable):
 
 		binary_list = get_binary_from_str(tuple(answer.keys())[0])
 
+		if binary_mutation_flag:
+			for i in range(len(binary_list)):
+				if random.random() < binary_mutation_prob:
+					if binary_list[i] == 0:
+						binary_list[i] = 1
+					else:
+						binary_list[i] = 0
+
 		binary_bu_list = deepcopy(binary_list)
 
 		qubits_per_line = len(binary_list)//number_of_qubits_in_possible_circuit
@@ -156,8 +165,8 @@ def get_pop_fitness(p_pool, population_iterable):
 
 		for key in goal_function.keys():
 
-			qr = QuantumRegister(number_of_qubits_in_individual)
-			cr = ClassicalRegister(number_of_qubits_in_individual)
+			qr = QuantumRegister(number_of_qubits_in_possible_circuit)
+			cr = ClassicalRegister(number_of_qubits_in_possible_circuit)
 			qc = QuantumCircuit(qr, cr,)
 
 			for i in range(number_of_qubits_in_possible_circuit):
@@ -188,7 +197,11 @@ def get_pop_fitness(p_pool, population_iterable):
 			results = job.result()
 			answer = results.get_counts()
 
-			goal_value = get_decimal(goal_function[key])
+			goal_value = reduce(
+				lambda acc, x: acc + str(x),
+				goal_function[key],
+				''
+			)
 
 			if goal_value not in answer:
 				v += global_shots
@@ -211,7 +224,22 @@ def main0():
 		2 : ('cnot',),
 	}
 
+	kill_percentage = 0.5
+
+	population_size = 15
+
 	depth = 3
+
+	global binary_mutation_flag, binary_mutation_prob
+
+	binary_mutation_flag = True
+
+	binary_mutation_prob = 0.1
+
+	surviving_population_size = int(population_size * (1 - kill_percentage))
+
+	killed_population_size = population_size - surviving_population_size
+
 
 	global global_shots,goal_function
 
@@ -223,9 +251,40 @@ def main0():
 
 	goal_function = get_random_goal_function(number_of_qubits_in_possible_circuit)
 
-	ge = Genetic_Executor(7, initializer1, 10,)
+	ge = Genetic_Executor(7, initializer1, population_size,)
 
-	print(ge.apply_operation(get_pop_fitness))
+	for it_no in range(10):
+
+		fitness_values = list( enumerate( map( lambda e: e[0], ge.apply_operation(get_pop_fitness) ) ) )
+
+		fitness_values.sort(key=lambda p: p[1])
+
+		print(f'{it_no}: {fitness_values[0][1]}')
+
+		new_pop = []
+		for i in range(surviving_population_size):
+			new_pop.append(ge.population[fitness_values[i][0]])
+		ge.population = new_pop
+
+		for _ in range(killed_population_size):
+			theta_arr = np.empty(number_of_qubits_in_individual)
+			alpha_arr = np.empty(number_of_qubits_in_individual)
+			beta_arr = np.empty(number_of_qubits_in_individual)
+
+			first_index = random.choice(range(surviving_population_size))
+			second_index = random.choice(tuple(filter(lambda e: e!=first_index, range(surviving_population_size))))
+
+			for i in range(number_of_qubits_in_individual):
+				if random.choice((True,False,)):
+					theta_arr[i] = ge.population[first_index][0][i]
+					alpha_arr[i] = ge.population[first_index][1][i]
+					beta_arr[i] = ge.population[first_index][2][i]
+				else:
+					theta_arr[i] = ge.population[second_index][0][i]
+					alpha_arr[i] = ge.population[second_index][1][i]
+					beta_arr[i] = ge.population[second_index][2][i]
+
+			ge.population.append((theta_arr,alpha_arr,beta_arr))
 
 if __name__ == '__main__':
 	main0()
