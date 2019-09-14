@@ -26,7 +26,7 @@ GATES_2Q = [
     g_2q.apply_controlled_not
 ]
 GENE_COUNT = 8
-MAX_GENERATIONS = 100
+MAX_GENERATIONS = 1000
 MEASUREMENT_QCOUNT = 3
 USE_CASE = [
     ('00', {'01': 1024}),
@@ -52,7 +52,7 @@ def main():
 
     gen_count = 0
     while gen_count < MAX_GENERATIONS and winner_eval[1] > 0:
-        logger.warning('Running generations {}'.format(gen_count))
+        logger.warning('Running generation {}'.format(gen_count))
 
         logger.warning('Producing candidate...')
         before = datetime.now()
@@ -61,6 +61,7 @@ def main():
         candidate_eval = evaluate(candidate, use_case=USE_CASE)
         delta = datetime.now() - before
         logger.warning('Candidate produced ({} s)'.format(delta.total_seconds()))
+        logger.warning('Candidate circuit:\n{}'.format(candidate))
 
         if candidate_eval[1] < winner_eval[1]:
             logger.warning('Found new winner')
@@ -70,9 +71,12 @@ def main():
             winner = candidate
             winner_eval = candidate_eval
             winner_measurements = candidate_measurements
+        else:
+            logger.warning('Candidate eval: {}'.format(candidate_eval))
 
-        logger.warning('Generation {}'.format(gen_count))
         logger.warning('Current winner eval: {}'.format(winner_eval))
+        logger.warning('')
+        logger.warning('')
 
         gen_count += 1
 
