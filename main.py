@@ -11,13 +11,13 @@ from circuit_mapper.gate_1_qubit import apply_not, apply_phase_flip
 from circuit_mapper.gate_2_qubit import apply_controlled_not
 from circuit_mapper.gate_map import make_map
 from evaluate.evaluate import evaluate
-from qiskit_helpers.local_simulator import noise_configuration
+from qiskit_helpers.local_simulator import ibm_noise_configuration
 
 
 CIRCUIT_QCOUNT = 2
 GATES_1Q = [apply_phase_flip]
 GATES_2Q = [apply_controlled_not]
-GENE_COUNT = 4
+GENE_COUNT = 16
 MAX_GENERATIONS = 30
 MEASUREMENT_QCOUNT = 3
 USE_CASE = [
@@ -35,7 +35,7 @@ def main():
     gate_map = make_map(CIRCUIT_QCOUNT, MEASUREMENT_QCOUNT, GATES_1Q, GATES_2Q)
 
     chromosome = Chromosome.superposition_chromosome(GENE_COUNT, MEASUREMENT_QCOUNT)
-    configuration = noise_configuration()
+    configuration = ibm_noise_configuration()
     measurements = chromosome.measure(configuration)
 
     winner = map_circuit(CIRCUIT_QCOUNT, gate_map, measurements)

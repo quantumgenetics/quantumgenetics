@@ -8,6 +8,8 @@ from datetime import datetime
 from qiskit import Aer, IBMQ
 from qiskit import execute as qiskit_execute
 from qiskit.providers.aer import noise
+from qiskit.providers.aer.noise import NoiseModel
+from qiskit.providers.aer.noise.errors import pauli_error
 
 
 # List of gate times for ibmq_14_melbourne device
@@ -22,14 +24,17 @@ _GATE_TIMES = [
     ('cx', [13, 1], 2286), ('cx', [13, 12], 1504), ('cx', [], 800)
 ]
 _LOCAL_BACKEND_NAME = 'qasm_simulator'
+_P_RESET = 0.8
+_P_MEAS = 0.6
+_P_GATE1 = 0.7
 _REMOTE_BACKEND_NAME = 'ibmq_16_melbourne'
 
 
 logger = logging.getLogger(__name__)
 
 
-def noise_configuration(remote_backend=_REMOTE_BACKEND_NAME, gate_times=_GATE_TIMES):
-    logger.info('Produce noise configuration')
+def ibm_noise_configuration(remote_backend=_REMOTE_BACKEND_NAME, gate_times=_GATE_TIMES):
+    logger.info('Produce IBM noise configuration')
 
     logger.info('Loading IBM account...')
     before = datetime.now()
@@ -44,6 +49,33 @@ def noise_configuration(remote_backend=_REMOTE_BACKEND_NAME, gate_times=_GATE_TI
     coupling_map = device.configuration().coupling_map
 
     return (noise_model, coupling_map)
+
+def customi_noise_configuration(remote_backend=_REMOTE_BACKEND_NAME):
+    logger.info('Produce custom noise configuration')
+
+    logger.info('Loading IBM account...')
+    before = datetime.now()
+    provider = IBMQ.load_account()
+    delta = datetime.now() - before
+    logger.info('IBM account loaded ({} s)'.format(delta.total_seconds()))
+
+    device = provider.get_backend(remote_backend)
+    coupling_map = device.configuration().coupling_map
+
+    # QuantumError objects
+    error_reset = pauli_error([('X', _P_RESET), ('I', 1 - _P_RESET)])
+    error_meas = pauli_error([('X', _P_MEAS), ('I', 1 - _P_MEAS)])
+    error_gate1 = pauli_error([('X', _P_GATE1), ('I', 1 - _P_GATE1)])
+    error_gate2 = error_gate1.tensor(error_gate1)
+
+    # Add errors to noise model
+    noise_bit_flip = NoiseModel()
+    noise_bit_flip.add_all_qubit_quantum_error(error_reset, "reset")
+    noise_bit_flip.add_all_qubit_quantum_error(error_meas, "measure")
+    noise_bit_flip.add_all_qubit_quantum_error(error_gate1, ["u1", "u2", "u3"])
+    noise_bit_flip.add_all_qubit_quantum_error(error_gate2, ["cx"])
+
+    return (noise_bit_flip, coupling_map)
 
 def execute(circuit,
             *,
