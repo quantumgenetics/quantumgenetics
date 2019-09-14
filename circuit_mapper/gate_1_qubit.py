@@ -23,7 +23,17 @@ def apply_phase_flip(index, circuit):
 
     circuit.z(qr[index])
 
-def apply_y_rotation(index, theta, circuit):
+def apply_hadamard(index, circuit):
+    qr = circuit.qregs[0]
+
+    circuit.h(qr[index])
+
+def apply_y_rotation(theta, index, circuit):
     qr = circuit.qregs[0]
 
     circuit.ry(theta, qr[index])
+
+def apply_z_rotation(phi, index, circuit):
+    qr = circuit.qregs[0]
+
+    circuit.rz(phi, qr[index])

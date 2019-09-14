@@ -4,21 +4,29 @@
 import logging
 
 from datetime import datetime
+from functools import partial
+
+import circuit_mapper.gate_1_qubit as g_1q
+import circuit_mapper.gate_2_qubit as g_2q
+import numpy as np
 
 from chromosome.chromosome import Chromosome
 from circuit_mapper.circuit_mapper import map_circuit
-from circuit_mapper.gate_1_qubit import apply_not, apply_phase_flip
-from circuit_mapper.gate_2_qubit import apply_controlled_not
 from circuit_mapper.gate_map import make_map
 from evaluate.evaluate import evaluate
 from qiskit_helpers.local_simulator import ibm_noise_configuration
 
 
 CIRCUIT_QCOUNT = 2
-GATES_1Q = [apply_phase_flip]
-GATES_2Q = [apply_controlled_not]
-GENE_COUNT = 16
-MAX_GENERATIONS = 30
+GATES_1Q = [
+    g_1q.apply_hadamard,
+    partial(g_1q.apply_z_rotation, np.pi / 4)
+]
+GATES_2Q = [
+    g_2q.apply_controlled_not
+]
+GENE_COUNT = 8
+MAX_GENERATIONS = 100
 MEASUREMENT_QCOUNT = 3
 USE_CASE = [
     ('00', {'01': 1024}),
