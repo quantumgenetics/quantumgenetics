@@ -84,11 +84,20 @@ def get_binary(decimal):
 		j-=1
 	return key
 
+def get_binary_from_str(s):
+	key = []
+	for ch in s:
+		if ch == '0':
+			key.append(0)
+		else:
+			key.append(1)
+	return key
+
 def get_decimal(binary):
 	'''
 	Gets a binary list and returns the decimal representaion.
 	'''
-	i = len(binary-1)
+	i = len(binary)-1
 	a = 0
 	for b in binary:
 		a += b**i
@@ -132,10 +141,12 @@ def get_pop_fitness(p_pool, population_iterable):
 		qc = QuantumCircuit(qr, cr,)
 		for i in range(number_of_qubits_in_individual):
 			qc.u3(theta_arr[i], 0, 0, qr[i])
+		qc.measure(qr,cr)
 		job = execute(qc, backend=backend, shots=1,)
 		results = job.result()
 		answer = results.get_counts()
-		binary_list = get_binary(answer.keys()[0])
+
+		binary_list = get_binary_from_str(tuple(answer.keys())[0])
 
 		binary_bu_list = deepcopy(binary_list)
 
@@ -164,9 +175,11 @@ def get_pop_fitness(p_pool, population_iterable):
 					elif gate == 'h':
 						qc.h(qr[i])
 					else:
-						qc.cnot(qr[i],random.choice(tuple(filter(lambda e: e != i, range(number_of_qubits_in_possible_circuit)))))
+						qc.cx(qr[i],qr[(i+1)%number_of_qubits_in_possible_circuit])
 
 				a += qubits_per_line
+
+			qc.measure(qr,cr)
 
 			job = execute(qc, backend=backend, shots=global_shots,\
 				backend_options={\
@@ -182,8 +195,8 @@ def get_pop_fitness(p_pool, population_iterable):
 			else:
 				v += global_shots - answer[goal_value]
 
-		fitness_list.append(v)
-	return (v,binary_bu_list)
+		fitness_list.append((v,binary_bu_list))
+	return fitness_list
 
 
 def main0():
@@ -198,7 +211,7 @@ def main0():
 		2 : ('cnot',),
 	}
 
-	depth = 4
+	depth = 3
 
 	global global_shots,goal_function
 
@@ -209,6 +222,10 @@ def main0():
 	config_list = get_number_gate_seq_relation(depth, available_gates)
 
 	goal_function = get_random_goal_function(number_of_qubits_in_possible_circuit)
+
+	ge = Genetic_Executor(7, initializer1, 10,)
+
+	print(ge.apply_operation(get_pop_fitness))
 
 if __name__ == '__main__':
 	main0()
